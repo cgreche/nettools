@@ -9,18 +9,30 @@ namespace nettools {
 	}
 
 	NT_ERROR ntClient::connect(const char * hostname, u16 port) {
-		_socket(&m_socket);
 		m_address.sin_family = AF_INET;
-		inet_pton(AF_INET, "127.0.0.1", &m_address.sin_addr);
+		::inet_pton(AF_INET, hostname, &m_address.sin_addr);
 		m_address.sin_port = ::htons(port);
 		return _connect(m_socket, (sockaddr*)&m_address, sizeof(m_address));
 	}
 
+	NT_ERROR ntClient::send(std::string message) {
+		return ntConnection::send(m_socket,(const u8*)message.c_str(), message.length());
+	}
+
 	NT_ERROR ntClient::poll() {
-		return 0;
+		u8 data[MAX_PACKET_SIZE];
+		u32 bytesRecv;
+		NT_ERROR result = _recv(m_socket, data, MAX_PACKET_SIZE,&bytesRecv);
+		if (result != NTERR_SUCCESS) {
+			if (bytesRecv == 0) {
+				//connection closed
+			}
+		}
+		return result;
 	}
 
 	NT_ERROR ntClient::close() {
-		return 0;
+		ntConnection::close();
+		return NTERR_SUCCESS;
 	}
 }

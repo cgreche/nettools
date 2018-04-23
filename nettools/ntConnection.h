@@ -14,7 +14,13 @@ typedef unsigned long u32;
 namespace nettools {
 #define MAX_PACKET_SIZE 8192
 
-	typedef int NT_ERROR;
+	enum NT_ERROR {
+		NTERR_SUCCESS,
+		NTERR_WOULDBLOCK,
+		NTERR_ADDRINUSE,
+		NTERR_CONNREFUSED,
+		NTERR_OTHER
+	};
 
 	enum NT_MESSAGE {
 		NT_CONNECT,
@@ -41,21 +47,23 @@ namespace nettools {
 		NT_ERROR _accept(int socket, ntConnection **mewClient);
 		NT_ERROR _connect(int socket, sockaddr *address, u32 len);
 		NT_ERROR _send(int socket, const u8 *data, u32 len);
-		NT_ERROR _recv(int socket, u8 *data, u32 len);
+		NT_ERROR _recv(int socket, u8 *data, u32 maxlen, u32 *recvLen);
 		NT_ERROR _close(int socket);
 
 	public:
 		ntConnection();
 		virtual ~ntConnection();
 
+		NT_ERROR setBlockingMode(bool blocking);
 		NT_ERROR setOption();
 		NT_ERROR getOption();
-		void setMessageHandler(ntMessageHandler messageHandler);
-
-		NT_ERROR recv();
-		NT_ERROR send();
+		
+		NT_ERROR send(int socket, const u8 *data, u32 len);
+		NT_ERROR recv(int socket, u8 *data, u32 maxlen, u32 *recvLen);
 		virtual NT_ERROR poll();
 		virtual NT_ERROR close();
+
+		void setMessageHandler(ntMessageHandler messageHandler);
 
 		int socket() const { return m_socket; }
 	};
